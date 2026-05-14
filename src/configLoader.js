@@ -10,7 +10,7 @@ const LOCAL_CONFIG_URL = './config.json'
 
 // Option B: GitHub Gist (paste your raw gist URL below)
 // Go to gist.github.com → create public gist with config.json → click Raw → copy URL
-const GIST_URL = 'https://gist.githubusercontent.com/prantik1814/b4ed94f64c0477059aa7d59c9bb4d753/raw/config.json'
+const GIST_URL = 'https://gist.githubusercontent.com/prantik1814/b4ed94f64c0477059aa7d59c9bb4d753/raw'
 
 // ─── ACTIVE URL ────────────────────────────────────────────────────────────────
 // Switch between LOCAL_CONFIG_URL and GIST_URL here:
