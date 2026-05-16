@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
 
 // ─── Environment detection ────────────────────────────────────────────────────
 
@@ -264,7 +263,6 @@ export default function SmartLinkButton({ link, index, accent }) {
   const bgColor = `${color}15`
   const borderColor = `${color}30`
   const glowColor = `${color}40`
-  const [iconError, setIconError] = useState(false)
 
   const handleClick = (e) => {
     e.preventDefault()
@@ -304,21 +302,13 @@ export default function SmartLinkButton({ link, index, accent }) {
       >
         {/* Icon */}
         <div
-          className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg overflow-hidden"
-          style={{ background: `${color}20` }}
+          className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg"
+          style={{ background: `${color}20`, color }}
           aria-hidden="true"
         >
-          {link.iconUrl && !iconError
-            ? <img
-                src={link.iconUrl}
-                alt={link.title}
-                className="w-6 h-6 object-contain"
-                onError={() => setIconError(true)}
-                crossOrigin="anonymous"
-              />
-            : <span className="text-sm font-bold" style={{ color }}>
-                {link.title.charAt(0).toUpperCase()}
-              </span>}
+          {link.iconUrl
+            ? <img src={link.iconUrl} alt={link.title} className="w-6 h-6 object-contain" />
+            : <div className="w-3 h-3 rounded-full" style={{ background: color }} />}
         </div>
 
         {/* Label */}

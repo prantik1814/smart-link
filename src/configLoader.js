@@ -59,6 +59,7 @@ function validateConfig(raw) {
         url: l.url.trim(),
         color: typeof l.color === 'string' ? l.color : '#ffffff',
         iconSvg: typeof l.iconSvg === 'string' ? l.iconSvg : '',
+        iconUrl: typeof l.iconUrl === 'string' ? l.iconUrl : '',
       }))
   }
 
