@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useRef } from 'react'
+import { useState } from 'react'
 
 // ─── Environment detection ────────────────────────────────────────────────────
 
@@ -41,61 +41,132 @@ function getLinks(rawUrl) {
     const host = url.hostname.toLowerCase()
     const path = url.pathname
 
-    // Strip Spotify's tracking ?si= param
-    if (host === 'open.spotify.com') {
-      url.searchParams.delete('si')
+    // Strip tracking params
+    if (host === 'open.spotify.com') url.searchParams.delete('si')
+    if (host === 'music.youtube.com') {
+      // Keep only the v param for YT Music
+      const v = url.searchParams.get('v')
+      url.search = v ? `?v=${v}` : ''
     }
 
     const cleanUrl = url.toString()
 
     // ── Spotify ──────────────────────────────────────────────────────────────
     if (host === 'open.spotify.com') {
-      // path is like /artist/ID or /track/ID or /album/ID
-      // Convert to spotify:artist:ID etc.
-      const parts = path.split('/').filter(Boolean) // ['artist', '1rrmL1...']
-      const appUri = parts.length >= 2
-        ? `spotify:${parts.join(':')}`
-        : cleanUrl
-      return { appUri, webUrl: cleanUrl }
+      const parts = path.split('/').filter(Boolean)
+      const appUri = parts.length >= 2 ? `spotify:${parts.join(':')}` : cleanUrl
+      const androidPkg = 'com.spotify.music'
+      return { appUri, webUrl: cleanUrl, androidPkg, platform: 'spotify' }
     }
 
     // ── Apple Music ───────────────────────────────────────────────────────────
     if (host === 'music.apple.com') {
-      // music.apple.com/us/album/... or /artist/...
-      // Convert to music: URLs which open Apple Music app
       const pathParts = path.split('/').filter(Boolean)
-      // pathParts: ['us', 'album', 'name', 'id'] or ['artist', 'name', 'id']
-      if (pathParts.length >= 2) {
-        const type = pathParts[1] // 'album', 'artist', 'song', etc.
-        const id = pathParts[pathParts.length - 1] // Last part is usually the ID
-        if (id && /^\d+$/.test(id)) {
-          return { appUri: `music://${type}/${id}`, webUrl: cleanUrl }
+      // Extract song/album ID from URL like /us/song/song-name/1578078666
+      const id = pathParts.find(p => /^\d+$/.test(p))
+      const type = pathParts.find(p => ['song', 'album', 'artist', 'playlist'].includes(p))
+      const androidPkg = 'com.apple.android.music'
+      if (id && type) {
+        return {
+          appUri: `music://${type}/${id}`,
+          webUrl: cleanUrl,
+          androidPkg,
+          iosScheme: `music://${type}/${id}`,
+          platform: 'apple'
         }
       }
-      return { appUri: cleanUrl, webUrl: cleanUrl }
+      return { appUri: cleanUrl, webUrl: cleanUrl, androidPkg, platform: 'apple' }
+    }
+
+    // ── YouTube (Standard) ────────────────────────────────────────────────────
+    if (host === 'youtu.be') {
+      const videoId = path.split('/')[1]
+      if (videoId) {
+        return {
+          appUri: `youtube://${videoId}`,
+          webUrl: cleanUrl,
+          androidPkg: 'com.google.android.youtube',
+          iosScheme: `youtube://${videoId}`,
+          platform: 'youtube'
+        }
+      }
+    }
+    if (host === 'www.youtube.com' || host === 'youtube.com') {
+      const videoId = url.searchParams.get('v') || path.split('/')[1]
+      if (videoId) {
+        return {
+          appUri: `youtube://${videoId}`,
+          webUrl: cleanUrl,
+          androidPkg: 'com.google.android.youtube',
+          iosScheme: `youtube://${videoId}`,
+          platform: 'youtube'
+        }
+      }
     }
 
     // ── YouTube Music ─────────────────────────────────────────────────────────
     if (host === 'music.youtube.com') {
-      // music.youtube.com/watch?v=ID or /channel/ID or /playlist?list=ID
       const videoId = url.searchParams.get('v')
       if (videoId) {
-        return { appUri: `vnd.youtube://${videoId}`, webUrl: cleanUrl }
-      }
-      // Try to extract from path if it's a browse URL
-      if (path.includes('/watch')) {
-        const match = path.match(/[?&]v=([^&]+)/)
-        if (match) {
-          return { appUri: `vnd.youtube://${match[1]}`, webUrl: cleanUrl }
+        return {
+          appUri: `youtubemusic://${videoId}`,
+          webUrl: cleanUrl,
+          androidPkg: 'com.google.android.apps.youtube.music',
+          iosScheme: `youtubemusic://${videoId}`,
+          platform: 'youtubemusic'
         }
       }
-      return { appUri: cleanUrl, webUrl: cleanUrl }
+    }
+
+    // ── JioSaavn ─────────────────────────────────────────────────────────────
+    if (host === 'www.jiosaavn.com' || host === 'jiosaavn.com') {
+      // URL: https://www.jiosaavn.com/song/kingpin/BSpSfAdbGnA
+      const songId = path.split('/').pop()
+      if (songId) {
+        return {
+          appUri: `jiosaavn://open/detail?type=song&id=${songId}`,
+          webUrl: cleanUrl,
+          androidPkg: 'com.jio.media.jiobeats',
+          iosScheme: `jiosaavn://song/${songId}`,
+          platform: 'jiosaavn'
+        }
+      }
+    }
+
+    // ── Amazon Music ──────────────────────────────────────────────────────────
+    if (host === 'music.amazon.com' || host === 'music.amazon.in') {
+      // URL: https://music.amazon.in/tracks/B08YYFH2C7
+      const asin = path.split('/').pop()
+      if (asin && asin.startsWith('B')) {
+        return {
+          appUri: `amzn://apps/android?p=com.amazon.mp3&asin=${asin}`,
+          webUrl: cleanUrl,
+          androidPkg: 'com.amazon.mp3',
+          iosScheme: `amzn-music://track/${asin}`,
+          platform: 'amazon'
+        }
+      }
+    }
+
+    // ── Gaana ─────────────────────────────────────────────────────────────────
+    if (host === 'gaana.com' || host === 'www.gaana.com') {
+      // URL: https://gaana.com/song/alone-3340
+      const songSlug = path.split('/').pop()
+      if (songSlug) {
+        return {
+          appUri: `gaana://song/${songSlug}`,
+          webUrl: cleanUrl,
+          androidPkg: 'com.gaana',
+          iosScheme: `gaana://song/${songSlug}`,
+          platform: 'gaana'
+        }
+      }
     }
 
     // ── Default ───────────────────────────────────────────────────────────────
-    return { appUri: cleanUrl, webUrl: cleanUrl }
+    return { appUri: cleanUrl, webUrl: cleanUrl, platform: 'web' }
   } catch {
-    return { appUri: rawUrl, webUrl: rawUrl }
+    return { appUri: rawUrl, webUrl: rawUrl, platform: 'web' }
   }
 }
 
@@ -133,75 +204,56 @@ function getLinks(rawUrl) {
  */
 function navigateTo(rawUrl) {
   const { isInAppBrowser, isAndroid, isIOS } = detectEnv()
-  const { appUri, webUrl } = getLinks(rawUrl)
+  const { appUri, webUrl, androidPkg, iosScheme, platform } = getLinks(rawUrl)
 
   // ── Inside Instagram / Facebook in-app browser ────────────────────────────
   if (isInAppBrowser) {
 
     if (isIOS) {
-      // iOS Strategy:
-      // Custom URI schemes (spotify://, music://) are handled at the OS level.
-      // iOS will intercept them even inside Instagram's WKWebView and prompt
-      // "Open in Spotify?" — this bypasses WKWebView restrictions entirely.
-
-      if (appUri && appUri !== webUrl && !appUri.startsWith('http')) {
-        // Step 1: Try custom URI scheme directly (e.g. spotify:track:ID)
-        window.location.href = appUri
-
-        // Step 2: Fallback to x-safari-https after delay if app not installed
-        setTimeout(() => {
-          window.location.href = webUrl.replace(/^https:\/\//, 'x-safari-https://')
-        }, 2000)
-
+      // iOS Strategy: Custom URI schemes work at OS level even in WKWebView
+      const scheme = iosScheme || appUri
+      if (scheme && scheme !== webUrl && !scheme.startsWith('http')) {
+        window.location.href = scheme
+        // Fallback to web after delay if app not installed
+        setTimeout(() => { window.location.href = webUrl }, 2500)
         return
       }
-
-      // No custom scheme available — try x-safari-https to escape to Safari
-      window.location.href = webUrl.replace(/^https:\/\//, 'x-safari-https://')
+      window.location.href = webUrl
       return
     }
 
     if (isAndroid) {
-      // Android Strategy: Custom URI schemes + intent fallbacks
-      const isSpotify = rawUrl.includes('open.spotify.com')
+      // Android Strategy: Try multiple methods to open native app
+      if (androidPkg) {
+        // Method 1: Try custom URI scheme first (works if app is installed)
+        if (appUri && !appUri.startsWith('http')) {
+          window.location.href = appUri
+        }
 
-      if (isSpotify && appUri.startsWith('spotify:')) {
-        // Method 1: Try direct custom scheme
-        window.location.href = appUri
-
-        // Method 2 (fallback after delay): Try intent:// URL
-        // This sometimes works when direct spotify:// fails
+        // Method 2: Try intent:// with package (opens app or Play Store)
         setTimeout(() => {
-          const intentUrl = webUrl.replace(
-            'https://open.spotify.com/',
-            'intent://open.spotify.com/'
-          ) + '#Intent;package=com.spotify.music;scheme=https;end'
+          const intentUrl = `intent://${webUrl.replace(/^https?:\/\//, '')}#Intent;package=${androidPkg};scheme=https;end`
+          window.location.href = intentUrl
+        }, 200)
 
-          try {
-            window.location.href = intentUrl
-          } catch (_) {
-            // If intent fails, fall through to regular URL
-            window.location.href = webUrl
-          }
-        }, 300)
-
-        // Method 3 (final fallback): Regular web URL
-        setTimeout(() => {
-          window.location.href = webUrl
-        }, 800)
-
+        // Method 3: Final fallback to web URL
+        setTimeout(() => { window.location.href = webUrl }, 1200)
         return
       }
 
-      // For non-Spotify links on Android in-app browser
-      // Navigate to web URL - platform's "Open in App" banner may appear
+      // Fallback for platforms without deep links
       window.location.href = webUrl
       return
     }
   }
 
   // ── Normal browser (Safari, Chrome, Firefox) ──────────────────────────────
-  // Universal Links / App Links work here — direct navigation is fine.
+  // Try custom scheme first, then fall back to web URL
+  if (appUri && appUri !== webUrl && !appUri.startsWith('http')) {
+    window.location.href = appUri
+    setTimeout(() => { window.location.href = webUrl }, 2000)
+    return
+  }
   window.location.href = webUrl
 }
 
@@ -212,6 +264,7 @@ export default function SmartLinkButton({ link, index, accent }) {
   const bgColor = `${color}15`
   const borderColor = `${color}30`
   const glowColor = `${color}40`
+  const [iconError, setIconError] = useState(false)
 
   const handleClick = (e) => {
     e.preventDefault()
@@ -251,13 +304,21 @@ export default function SmartLinkButton({ link, index, accent }) {
       >
         {/* Icon */}
         <div
-          className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg"
-          style={{ background: `${color}20`, color }}
+          className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg overflow-hidden"
+          style={{ background: `${color}20` }}
           aria-hidden="true"
         >
-          {link.iconSvg
-            ? <div className="w-5 h-5" dangerouslySetInnerHTML={{ __html: link.iconSvg }} />
-            : <div className="w-3 h-3 rounded-full" style={{ background: color }} />}
+          {link.iconUrl && !iconError
+            ? <img
+                src={link.iconUrl}
+                alt={link.title}
+                className="w-6 h-6 object-contain"
+                onError={() => setIconError(true)}
+                crossOrigin="anonymous"
+              />
+            : <span className="text-sm font-bold" style={{ color }}>
+                {link.title.charAt(0).toUpperCase()}
+              </span>}
         </div>
 
         {/* Label */}
