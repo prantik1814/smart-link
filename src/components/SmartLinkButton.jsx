@@ -91,7 +91,7 @@ function getLinks(rawUrl) {
       }
     }
     if (host === 'www.youtube.com' || host === 'youtube.com') {
-      const videoId = url.searchParams.get('v') || path.split('/')[1]
+      const videoId = url.searchParams.get('v')
       if (videoId) {
         return {
           appUri: `youtube://${videoId}`,
@@ -100,6 +100,14 @@ function getLinks(rawUrl) {
           iosScheme: `youtube://${videoId}`,
           platform: 'youtube'
         }
+      }
+      // Channel or non-video URLs (e.g. /@TLFGANG)
+      return {
+        appUri: cleanUrl,
+        webUrl: cleanUrl,
+        androidPkg: 'com.google.android.youtube',
+        iosScheme: `vnd.youtube://${cleanUrl}`,
+        platform: 'youtube'
       }
     }
 
@@ -115,18 +123,27 @@ function getLinks(rawUrl) {
           platform: 'youtubemusic'
         }
       }
+      // Channel or non-video URLs (e.g. /@TLFGANG)
+      return {
+        appUri: cleanUrl,
+        webUrl: cleanUrl,
+        androidPkg: 'com.google.android.apps.youtube.music',
+        platform: 'youtubemusic'
+      }
     }
 
     // ── JioSaavn ─────────────────────────────────────────────────────────────
-    if (host === 'www.jiosaavn.com' || host === 'jiosaavn.com') {
-      // URL: https://www.jiosaavn.com/song/kingpin/BSpSfAdbGnA
-      const songId = path.split('/').pop()
-      if (songId) {
+    if (host === 'www.jiosaavn.com' || host === 'jiosaavn.com' || host === 'www.saavn.com' || host === 'saavn.com') {
+      // URLs: /song/name/ID or /s/artist/name/ID
+      const pathParts = path.split('/').filter(Boolean)
+      const id = pathParts.pop()
+      const type = pathParts.find(p => ['song', 'album', 'artist', 'playlist'].includes(p)) || 'artist'
+      if (id) {
         return {
-          appUri: `jiosaavn://open/detail?type=song&id=${songId}`,
+          appUri: `jiosaavn://open/detail?type=${type}&id=${id}`,
           webUrl: cleanUrl,
           androidPkg: 'com.jio.media.jiobeats',
-          iosScheme: `jiosaavn://song/${songId}`,
+          iosScheme: `jiosaavn://${type}/${id}`,
           platform: 'jiosaavn'
         }
       }
@@ -149,14 +166,16 @@ function getLinks(rawUrl) {
 
     // ── Gaana ─────────────────────────────────────────────────────────────────
     if (host === 'gaana.com' || host === 'www.gaana.com') {
-      // URL: https://gaana.com/song/alone-3340
-      const songSlug = path.split('/').pop()
-      if (songSlug) {
+      // URLs: /song/slug, /album/slug, /artist/slug
+      const pathParts = path.split('/').filter(Boolean)
+      const type = pathParts[0] || 'song' // song, album, artist
+      const slug = pathParts[1] || ''
+      if (slug) {
         return {
-          appUri: `gaana://song/${songSlug}`,
+          appUri: `gaana://${type}/${slug}`,
           webUrl: cleanUrl,
           androidPkg: 'com.gaana',
-          iosScheme: `gaana://song/${songSlug}`,
+          iosScheme: `gaana://${type}/${slug}`,
           platform: 'gaana'
         }
       }
