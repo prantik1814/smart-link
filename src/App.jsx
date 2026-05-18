@@ -9,6 +9,7 @@ import HeroSection from './components/HeroSection'
 import SmartLinkButton from './components/SmartLinkButton'
 import DescriptionSection from './components/DescriptionSection'
 import Footer from './components/Footer'
+import SmartLinkEditor from './pages/SmartLinkEditor'
 
 /**
  * App
@@ -19,6 +20,19 @@ export default function App() {
   const [config, setConfig] = useState(null)
   const [status, setStatus] = useState('loading') // 'loading' | 'ready' | 'error'
   const [errorMsg, setErrorMsg] = useState(null)
+  const [showEditor, setShowEditor] = useState(false)
+  const [isEditorMode, setIsEditorMode] = useState(false)
+
+  // Check URL parameter for editor mode
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const editorMode = urlParams.get('editor') === 'true'
+    console.log('URL params:', window.location.search, 'Editor mode:', editorMode)
+    setIsEditorMode(editorMode)
+    if (editorMode) {
+      setShowEditor(true)
+    }
+  }, [])
 
   // ─── Load config ────────────────────────────────────────────────────────────
   const fetchConfig = useCallback(async () => {
@@ -62,6 +76,12 @@ export default function App() {
   }
 
   // ─── Render ─────────────────────────────────────────────────────────────────
+  
+  // Show editor if in editor mode
+  if (showEditor) {
+    return <SmartLinkEditor />
+  }
+
   return (
     <div className="relative min-h-screen grain" role="main">
 

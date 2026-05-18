@@ -83,4 +83,24 @@
   .ring-pulse {
     animation: ring-pulse 2.5s ease-out infinite;
   }
+
+  /* Form specific styles to fix white text on white background */
+  .form-container {
+    @apply text-gray-900;
+  }
+  
+  .form-container .form-group,
+  .form-container label {
+    @apply text-gray-900;
+  }
+
+  .form-container input,
+  .form-container textarea,
+  .form-container select {
+    @apply text-gray-900 bg-gray-100 border border-gray-300 p-2 rounded-md;
+  }
+  
+  .form-container .field-description {
+    @apply text-gray-600;
+  }
 }
