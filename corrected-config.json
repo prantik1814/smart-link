@@ -1,0 +1,61 @@
+{
+  "bandName": "TLF GANG",
+  "tagline": "New Single 'Do or Die' Out Now",
+  "description": "Stream our latest track on your favourite platform.",
+  "heroImage": "https://github.com/prantik1814/smart-link/blob/main/public/DOD%20FINAL%20STRUCT.webp?raw=true",
+  "backgroundImage": "https://github.com/prantik1814/smart-link/blob/main/public/7542f5e39a6833ea40c5c01bf12b1f91.jpg?raw=true",
+  "theme": {
+    "accentColor": "#ff6b6b",
+    "backgroundOverlay": "rgba(4, 4, 12, 0.85)"
+  },
+  "links": [
+    {
+      "title": "Spotify",
+      "url": "https://open.spotify.com/track/5ybQaZNqNbPgPaUx6lL0rU?si=bc2b70c5705f4e7f",
+      "color": "#1DB954",
+      "iconUrl": "/icons/spotify.png"
+    },
+    {
+      "title": "YouTube",
+      "url": "https://youtu.be/tBWiUvQj1AQ",
+      "color": "#FF0000",
+      "iconUrl": "/icons/youtube.png"
+    },
+    {
+      "title": "YouTube Music",
+      "url": "https://music.youtube.com/watch?v=tBWiUvQj1AQ&feature=share",
+      "color": "#FF0000",
+      "iconUrl": "/icons/youtubemusic.png"
+    },
+    {
+      "title": "JioSaavn",
+      "url": "https://www.jiosaavn.com/song/do-or-die/LUFe5mwa,ASM_",
+      "color": "#2BC5B4",
+      "iconUrl": "/icons/JioSaavn Icon Transparent.png"
+    },
+    {
+      "title": "Amazon Music",
+      "url": "https://music.amazon.in/songs/B0DWHVYJ1K",
+      "color": "#00A8E1",
+      "iconUrl": "/icons/amazon.png"
+    },
+    {
+      "title": "Apple Music",
+      "url": "https://music.apple.com/in/song/do-or-die/6766575394",
+      "color": "#fc3c44",
+      "iconUrl": "/icons/applemusic.png"
+    },
+    {
+      "title": "Gaana",
+      "url": "https://gaana.com/song/do-or-die/NwNjARx3VjU",
+      "color": "#E72C30",
+      "iconUrl": "/icons/gaana.png"
+    },
+    {
+      "title": "Catalogue",
+      "url": "https://linktr.ee/tlfgang",
+      "color": "#E72C30",
+      "iconUrl": "/icons/band_icon.jpeg"
+    }
+  ]
+}

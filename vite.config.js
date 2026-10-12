@@ -8,9 +8,9 @@ export default defineConfig({
   base: './',
 
   server: {
-    allowedHosts: [
-      'toya-chronometrical-scrawnily.ngrok-free.dev'
-    ]
+    // Leading dot = wildcard: allows any *.ngrok-free.dev subdomain,
+    // so ngrok's rotating free URLs don't need config changes.
+    allowedHosts: ['.ngrok-free.dev'],
   },
 
   build: {

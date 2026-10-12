@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
+import { Ticket } from 'lucide-react'
 
 import { loadConfig } from './configLoader'
 import AnimatedBackground from './components/AnimatedBackground'
@@ -27,7 +29,7 @@ export default function App() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const editorMode = urlParams.get('editor') === 'true'
-    console.log('URL params:', window.location.search, 'Editor mode:', editorMode)
+    console.log('URL params:', window.location.search, 'Editor mode:', editorMode, 'Build: 2025-01-19-v2')
     setIsEditorMode(editorMode)
     if (editorMode) {
       setShowEditor(true)
@@ -155,6 +157,23 @@ export default function App() {
                   />
                 ))}
               </nav>
+
+              {/* Concert tickets CTA */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="relative z-10 mt-6"
+              >
+                <Link
+                  to="/concert"
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-black transition hover:brightness-110"
+                  style={{ backgroundColor: config.theme.accentColor }}
+                >
+                  <Ticket className="w-5 h-5" />
+                  Buy Tickets — Courtyard Concert
+                </Link>
+              </motion.div>
 
               {/* Description */}
               <DescriptionSection
