@@ -13,6 +13,8 @@ import AdminScanner from './pages/admin/AdminScanner.jsx'
 import AdminUsers from './pages/admin/AdminUsers.jsx'
 import AdminEvent from './pages/admin/AdminEvent.jsx'
 import SmartLinkEditor from './pages/SmartLinkEditor.jsx'
+import PolicyPage from './pages/legal/PolicyPage.jsx'
+import { TERMS, PRIVACY, REFUNDS, CONTACT } from './pages/legal/legalContent.js'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -26,6 +28,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/concert" element={<ConcertPage />} />
         <Route path="/my-tickets" element={<MyTicketsPage />} />
         <Route path="/editor" element={<SmartLinkEditor />} />
+
+        {/* Compliance pages (required for payment gateway verification) */}
+        <Route path="/terms" element={<PolicyPage doc={TERMS} />} />
+        <Route path="/privacy" element={<PolicyPage doc={PRIVACY} />} />
+        <Route path="/refunds" element={<PolicyPage doc={REFUNDS} />} />
+        <Route path="/contact" element={<PolicyPage doc={CONTACT} />} />
 
         {/* Admin panel */}
         <Route path="/admin/login" element={<AdminLogin />} />
