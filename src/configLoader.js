@@ -67,19 +67,32 @@ function validateConfig(raw) {
 }
 
 // ─── FETCH ────────────────────────────────────────────────────────────────────
-export async function loadConfig(url = CONFIG_URL) {
+async function fetchConfig(url) {
   // Cache bust to ensure fresh data on every load (useful for campaign updates)
   const bust = `${url}${url.includes('?') ? '&' : '?'}_cb=${Date.now()}`
 
   const response = await fetch(bust, {
     headers: { Accept: 'application/json' },
     cache: 'no-store',
+    signal: AbortSignal.timeout(8000),
   })
 
   if (!response.ok) {
     throw new Error(`Failed to load config: HTTP ${response.status} ${response.statusText}`)
   }
 
-  const raw = await response.json()
+  return response.json()
+}
+
+export async function loadConfig(url = CONFIG_URL) {
+  // Try the remote source first (live updates via gist), then the bundled
+  // config so the site still works when the raw gist host is unreachable.
+  try {
+    return validateConfig(await fetchConfig(url))
+  } catch (remoteError) {
+    console.warn('[configLoader] Remote config failed, falling back to local:', remoteError.message)
+  }
+
+  const raw = await fetchConfig(LOCAL_CONFIG_URL)
   return validateConfig(raw)
 }
